@@ -1,182 +1,598 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion de chantier - Demo ArtisanSmart V20</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion de Chantiers — Démo Artisan</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; }
-    #app { display: flex; flex-direction: column; min-height: 100vh; }
-    .flex { display: flex; }
-    .h-screen { height: 100vh; }
-    .overflow-y-auto { overflow-y: auto; }
-    .space-y-2 > * + * { margin-top: 0.5rem; }
-    .grid { display: grid; }
-    .md\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-    @media (min-width: 768px) { .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    .gap-4 { gap: 1rem; }
-    .bg-blue-50 { background-color: rgb(239 246 255); }
-    .p-4 { padding: 1rem; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .text-center { text-align: center; }
-    .font-bold { font-weight: 700; }
-    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
-    .text-green-600 { color: rgb(22 163 74); }
-    .text-orange-600 { color: rgb(234 88 12); }
-    .text-red-600 { color: rgb(220 38 38); }
-    .bg-orange-50 { background-color: rgb(254 252 232); }
-    .bg-red-50 { background-color: rgb(254 242 242); }
-    .bg-gray-50 { background-color: rgb(249 250 251); }
+    [x-cloak] { display: none !important; }
+    .badge-retard { @apply bg-red-100 text-red-800; }
+    .badge-encours { @apply bg-yellow-100 text-yellow-800; }
+    .badge-termine { @apply bg-green-100 text-green-800; }
+    .badge-prevu { @apply bg-blue-100 text-blue-800; }
   </style>
 </head>
-<body>
-  <div id="app">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold">Gestion de chantier - Demo ArtisanSmart V20</h1>
-      <div class="space-x-2">
-        <button id="test-api" class="bg-green-500 p-2 rounded">Test API Gemini</button>
-        <button id="generate-text" class="bg-orange-500 p-2 rounded">Generer texte Landing Page</button>
-      </div>
-    </header>
-    <div class="flex">
-      <!-- Sidebar -->
-      <nav class="w-64 p-4 bg-gray-100 h-screen overflow-y-auto">
-        <ul class="space-y-2">
-          <li><button class="w-full text-left p-2 bg-gray-200 rounded" onclick="setActiveView('dashboard')">📊 Tableau de bord</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('projects')">🏗️ Chantiers</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('quotes')">💰 Devis & Factures</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('planning')">📅 Planning</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('employees')">👥 Salaries</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('materials')">🛠️ Materiaux</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('ae')">⚠️ Auto-entrepreneur</button></li>
-          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('settings')">⚙️ Parametres</button></li>
-        </ul>
+<body class="h-full bg-gray-50 flex flex-col">
+  <!-- HEADER -->
+  <header class="bg-white shadow-sm border-b border-gray-200 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-900">Gestion de Chantiers — Démo Artisan</h1>
+      <div class="text-sm text-gray-500">Données stockées localement (localStorage)</div>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden">
+    <!-- SIDEBAR (desktop) / TOP MENU (mobile) -->
+    <aside class="hidden md:flex md:flex-col md:w-64 bg-gray-800 text-white">
+      <nav class="flex-1 px-4 py-6 space-y-1" x-data="{ active: 'dashboard' }">
+        <template x-for="item in [
+          {id:'dashboard', icon:'📊', label:'Tableau de bord'},
+          {id:'projects', icon:'🏗️', label:'Chantiers'},
+          {id:'quotes', icon:'📄', label:'Devis & Factures'},
+          {id:'planning', icon:'📅', label:'Planning'},
+          {id:'employees', icon:'👥', label:'Salariés'},
+          {id:'materials', icon:'🛠️', label:'Matériaux'},
+          {id:'micro', icon:'💼', label:'Auto-entrepreneur'},
+          {id:'settings', icon:'⚙️', label:'Paramètres'}
+        ]">
+          <button @click="active=item.id; setActiveView(item.id)" 
+                  :class="active===item.id ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700'"
+                  class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3">
+            <span class="text-xl"><template x-text="item.icon"></template></span>
+            <span x-text="item.label"></span>
+          </button>
+        </template>
       </nav>
-      <!-- Main content -->
-      <main id="main-content" class="flex-1 p-4 overflow-y-auto">
-        <h2 class="text-2xl font-bold mb-4">Dashboard V20 - Clique sidebar pour tester</h2>
-        <p>Boutons maintenant cliquables. Si pas, F12 console.</p>
-      </main>
+    </aside>
+
+    <!-- MOBILE MENU -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+      <select @change="setActiveView($event.target.value)" class="w-full p-3 text-center">
+        <option value="dashboard">📊 Tableau de bord</option>
+        <option value="projects">🏗️ Chantiers</option>
+        <option value="quotes">📄 Devis & Factures</option>
+        <option value="planning">📅 Planning</option>
+        <option value="employees">👥 Salariés</option>
+        <option value="materials">🛠️ Matériaux</option>
+        <option value="micro">💼 Auto-entrepreneur</option>
+        <option value="settings">⚙️ Paramètres</option>
+      </select>
     </div>
-    <!-- Output Gemini -->
-    <div id="gemini-output" class="p-4 border-t bg-gray-50 hidden">
-      <h3 class="font-bold mb-2">Texte genere par Gemini :</h3>
-      <div id="output-content"></div>
-    </div>
-  </div>
 
-  <script>
-    console.log("V20 Script charge - Structure full");
-    
-    // Clé API
-    window.GEMINI_API_KEY = "";
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto pb-20 md:pb-0" x-data="app" x-init="init()">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    // Fonction Gemini
-    window.callGemini = async function(prompt, isTest = false) {
-      console.log("Gemini call:", prompt.substring(0, 50) + "...");
-      if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
-      
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
-      
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-          })
-        });
-        
-        if (!response.ok) throw new Error(`Status ${response.status} - API non active.`);
-        
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        console.log("Gemini OK:", text.substring(0, 50) + "...");
-        return isTest ? "API Gemini 1.5 Flash OK - tout fonctionne !" : text;
-        
-      } catch (error) {
-        console.error("Gemini error:", error);
-        return `Erreur: ${error.message} - Verifie activation sur aistudio.google.com/app/apikey`;
-      }
-    };
-
-    // Header boutons (onclick direct)
-    document.getElementById("test-api").onclick = async function() {
-      console.log("Test API clicked");
-      const result = await window.callGemini("Dis bonjour en francais.", true);
-      document.getElementById("gemini-output").classList.remove("hidden");
-      document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
-    };
-
-    document.getElementById("generate-text").onclick = async function() {
-      console.log("Generate clicked");
-      const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
-      const output = await window.callGemini(prompt);
-      document.getElementById("gemini-output").classList.remove("hidden");
-      document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
-    };
-
-    // State
-    window.state = {
-      projects: [
-        { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
-        { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
-      ]
-    };
-
-    // setActiveView (appelée par onclick)
-    function setActiveView(view) {
-      console.log("Vue changee:", view);
-      const main = document.getElementById('main-content');
-      main.innerHTML = '';
-      
-      if (view === 'dashboard') {
-        const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
-        const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
-        const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
-        
-        main.innerHTML = `
-          <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
-          <div class="grid md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
-              <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
-              <p class="text-sm">Grâce aux automatisations</p>
+        <!-- DASHBOARD -->
+        <section x-show="view === 'dashboard'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Tableau de bord</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-3xl font-bold" x-text="stats.totalProjects"></div>
+              <div class="text-gray-600">Chantiers total</div>
             </div>
-            <div class="bg-orange-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">CA en attente</h3>
-              <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
-              <p class="text-sm">Devis non signes + factures</p>
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-3xl font-bold text-orange-600" x-text="stats.lateProjects"></div>
+              <div class="text-gray-600">En retard</div>
             </div>
-            <div class="bg-red-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">Chantiers a risque</h3>
-              <p class="text-3xl text-red-600">${totalRisques}</p>
-              <p class="text-sm">Retards detectes</p>
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-3xl font-bold text-green-600" x-text="formatMoney(stats.totalAcceptedQuotes)"></div>
+              <div class="text-gray-600">Devis acceptés (TTC)</div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-3xl font-bold text-red-600" x-text="formatMoney(stats.overdueInvoices)"></div>
+              <div class="text-gray-600">Factures en retard</div>
             </div>
           </div>
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="font-bold">Chantiers en cours</h3>
-            <ul class="list-disc pl-5">
-              ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
+
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-xl font-semibold mb-4">Résumé du jour</h3>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Vous avez <strong x-text="stats.activeProjects"></strong> chantiers actifs dont <strong x-text="stats.lateProjects"></strong> en retard.</li>
+              <li>• <strong x-text="stats.pendingQuotes"></strong> devis en attente de signature.</li>
+              <li>• Montant total impayé ou en retard : <strong x-text="formatMoney(stats.overdueInvoices + stats.pendingInvoices)"></strong> €</li>
             </ul>
           </div>
-        `;
-      } else {
-        main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Navigation OK.</p>`;
-      }
-    }
+        </section>
 
-    // Init
-    setActiveView('dashboard');
-    console.log("V20 init complete - Tout charge.");
+        <!-- CHANTIERS -->
+        <section x-show="view === 'projects'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Chantiers</h2>
+
+          <!-- Filtres + Création -->
+          <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+            <input type="text" placeholder="Rechercher..." x-model="projectSearch" class="px-4 py-2 border rounded">
+            <select x-model="projectFilterStatus" class="px-4 py-2 border rounded">
+              <option value="">Tous les statuts</option>
+              <option>Prévu</option><option>En cours</option><option>Terminé</option><option>En retard</option>
+            </select>
+            <button @click="showNewProjectModal=true" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Nouveau chantier</button>
+          </div>
+
+          <!-- Liste -->
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Début / Fin</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Responsable</th>
+                  <th class="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <template x-for="p in filteredProjects" :key="p.id">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap" x-text="p.name"></td>
+                    <td class="px-6 py-4" x-text="getClientName(p.clientId)"></td>
+                    <td class="px-6 py-4">
+                      <span :class="{
+                        'badge-prevu': p.status==='Prévu',
+                        'badge-encours': p.status==='En cours',
+                        'badge-termine': p.status==='Terminé',
+                        'badge-retard': p.status==='En retard'
+                      }" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                        <span x-text="p.status"></span>
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm" x-text="formatDate(p.start)+ ' → ' +formatDate(p.end)"></td>
+                    <td class="px-6 py-4" x-text="getEmployeeName(p.responsibleId) || '-'"></td>
+                    <td class="px-6 py-4 text-right">
+                      <button @click="selectProject(p.id)" class="text-indigo-600 hover:text-indigo-900">Voir</button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Fiche chantier détaillée -->
+          <div x-show="selectedProject" class="mt-8 bg-white p-6 rounded-lg shadow">
+            <template x-if="selectedProject">
+              <div>
+                <h3 class="text-2xl font-bold mb-4" x-text="selectedProject.name"></h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p><strong>Client :</strong> <span x-text="getClientName(selectedProject.clientId)"></span></p>
+                    <p><strong>Adresse :</strong> <span x-text="selectedProject.address"></span></p>
+                    <p><strong>Statut :</strong> <span x-text="selectedProject.status"></span></p>
+                    <p><strong>Dates :</strong> <span x-text="formatDate(selectedProject.start)"></span> → <span x-text="formatDate(selectedProject.end)"></span></p>
+                    <p><strong>Responsable :</strong> <span x-text="getEmployeeName(selectedProject.responsibleId) || 'Non assigné'"></span></p>
+                  </div>
+
+                  <!-- Tâches -->
+                  <div>
+                    <h4 class="font-semibold mb-2">Tâches</h4>
+                    <ul class="space-y-2">
+                      <template x-for="(task, idx) in selectedProject.tasks" :key="idx">
+                        <li class="flex items-center">
+                          <input type="checkbox" x-model="task.done" @change="saveState()" class="mr-2">
+                          <span :class="task.done ? 'line-through text-gray-500' : ''" x-text="task.text"></span>
+                        </li>
+                      </template>
+                    </ul>
+                    <div class="mt-3 flex">
+                      <input type="text" x-model="newTaskText" @keyup.enter="addTask()" placeholder="Nouvelle tâche..." class="flex-1 border rounded-l px-3 py-1">
+                      <button @click="addTask()" class="bg-green-600 text-white px-4 rounded-r">Ajouter</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Communication simulée -->
+                <button @click="simulateMessage()" class="mt-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                  Simuler message client
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <!-- Modal création chantier -->
+          <div x-show="showNewProjectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showNewProjectModal=false">
+            <div class="bg-white p-6 rounded-lg max-w-lg w-full">
+              <h3 class="text-xl font-bold mb-4">Nouveau chantier</h3>
+              <input x-model="newProject.name" placeholder="Nom du chantier" class="w-full mb-3 px-3 py-2 border rounded">
+              <select x-model="newProject.clientId" class="w-full mb-3 px-3 py-2 border rounded">
+                <template x-for="c in state.clients">
+                  <option :value="c.id" x-text="c.name"></option>
+                </template>
+              </select>
+              <input x-model="newProject.address" placeholder="Adresse" class="w-full mb-3 px-3 py-2 border rounded">
+              <input type="date" x-model="newProject.start" class="w-full mb-3 px-3 py-2 border rounded">
+              <input type="date" x-model="newProject.end" class="w-full mb-3 px-3 py-2 border rounded">
+              <select x-model="newProject.responsibleId" class="w-full mb-3 px-3 py-2 border rounded">
+                <option value="">Aucun responsable</option>
+                <template x-for="e in state.employees">
+                  <option :value="e.id" x-text="e.name"></option>
+                </template>
+              </select>
+              <div class="flex justify-end space-x-3">
+                <button @click="showNewProjectModal=false" class="px-4 py-2 border rounded">Annuler</button>
+                <button @click="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded">Créer</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DEVIS & FACTURES -->
+        <section x-show="view === 'quotes'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Devis & Factures</h2>
+          <div class="flex space-x-4 mb-6">
+            <button @click="quoteTab='quotes'" :class="quoteTab==='quotes' ? 'bg-blue-600 text-white' : 'bg-gray-200'" class="px-6 py-2 rounded">Devis</button>
+            <button @click="quoteTab='invoices'" :class="quoteTab==='invoices' ? 'bg-blue-600 text-white' : 'bg-gray-200'" class="px-6 py-2 rounded">Factures</button>
+          </div>
+
+          <!-- Devis -->
+          <div x-show="quoteTab==='quotes'">
+            <button @click="createQuote()" class="mb-4 bg-blue-600 text-white px-4 py-2 rounded">+ Nouveau devis</button>
+            <table class="min-w-full bg-white shadow rounded">
+              <thead class="bg-gray-50"><tr>
+                <th class="px-4 py-3 text-left">N°</th>
+                <th class="px-4 py-3 text-left">Chantier</th>
+                <th class="px-4 py-3 text-left">Client</th>
+                <th class="px-4 py-3 text-left">Montant TTC</th>
+                <th class="px-4 py-3 text-left">Statut</th>
+                <th></th>
+              </tr></thead>
+              <tbody>
+                <template x-for="q in state.quotes">
+                  <tr>
+                    <td class="px-4 py-2" x-text="q.number"></td>
+                    <td class="px-4 py-2" x-text="getProjectName(q.projectId) || '-'"></td>
+                    <td class="px-4 py-2" x-text="getClientName(q.clientId)"></td>
+                    <td class="px-4 py-2" x-text="formatMoney(calculateQuoteTotal(q))"></td>
+                    <td class="px-4 py-2" x-text="q.status"></td>
+                    <td class="px-4 py-2 text-right space-x-2">
+                      <button @click="selectedQuote=q; showQuoteDetail=true" class="text-indigo-600">Voir</button>
+                      <template x-if="q.status==='Accepté'">
+                        <button @click="createInvoiceFromQuote(q)" class="text-green-600 text-xs">→ Facture</button>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Factures -->
+          <div x-show="quoteTab==='invoices'">
+            <table class="min-w-full bg-white shadow rounded">
+              <thead class="bg-gray-50"><tr>
+                <th class="px-4 py-3 text-left">N°</th>
+                <th class="px-4 py-3 text-left">Chantier</th>
+                <th class="px-4 py-3 text-left">Montant TTC</th>
+                <th class="px-4 py-3 text-left">Échéance</th>
+                <th class="px-4 py-3 text-left">Statut</th>
+                <th></th>
+              </tr></thead>
+              <tbody>
+                <template x-for="i in state.invoices">
+                  <tr>
+                    <td class="px-4 py-2" x-text="i.number"></td>
+                    <td class="px-4 py-2" x-text="getProjectName(i.projectId) || '-'"></td>
+                    <td class="px-4 py-2" x-text="formatMoney(calculateInvoiceTotal(i))"></td>
+                    <td class="px-4 py-2" x-text="formatDate(i.dueDate)"></td>
+                    <td class="px-4 py-2">
+                      <span :class="isInvoiceOverdue(i) ? 'text-red-600' : ''" x-text="i.status"></span>
+                    </td>
+                    <td class="px-4 py-2 text-right space-x-2">
+                      <button @click="showFacturX(i)" class="text-indigo-600 text-xs">Factur-X</button>
+                      <template x-if="i.status!=='Payée'">
+                        <button @click="markInvoicePaid(i)" class="text-green-600 text-xs">Marquer payée</button>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Modal Factur-X simulée -->
+          <div x-show="showFacturXModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showFacturXModal=false">
+            <div class="bg-white p-6 rounded-lg max-w-3xl w-full max-h-screen overflow-y-auto">
+              <h3 class="text-xl font-bold mb-4">Simulation Factur-X / Chorus Pro</h3>
+              <p class="text-sm text-gray-600 mb-4">Cette démo n’envoie rien, elle montre juste la structure.</p>
+              <pre class="bg-gray-100 p-4 rounded text-xs overflow-x-auto" x-text="JSON.stringify(facturXData, null, 2)"></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- PLANNING -->
+        <section x-show="view === 'planning'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Planning hebdomadaire</h2>
+          <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <template x-for="day in weekDays">
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-semibold" x-text="day.date"></h4>
+                <p class="text-sm text-gray-500" x-text="day.name"></p>
+                <ul class="mt-3 space-y-2">
+                  <template x-for="p in projectsOnDay(day.iso)">
+                    <li class="text-sm">
+                      <span class="font-medium" x-text="p.name"></span><br>
+                      <span class="text-gray-600" x-text="getEmployeeName(p.responsibleId) || 'Non assigné'"></span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <!-- AUTO-ENTREPRENEUR -->
+        <section x-show="view === 'micro'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Auto-entrepreneur (micro-entreprise)</h2>
+          <div class="bg-white p-6 rounded-lg shadow">
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <p class="text-2xl font-bold" x-text="formatMoney(micro.ca) + ' €'"></p>
+                <p class="text-gray-600">CA annuel réalisé (factures Payées + Envoyées)</p>
+                <div class="mt-4">
+                  <div class="w-full bg-gray-200 rounded-full h-8">
+                    <div class="bg-green-600 h-8 rounded-full text-white flex items-center justify-center font-bold" 
+                         :style="'width: '+micro.percent+'%'"
+                         x-text="micro.percent.toFixed(1)+'%'"></div>
+                  </div>
+                  <p class="mt-2 text-sm">Plafond micro : <strong x-text="formatMoney(state.settings.microCeiling)"></strong> €</p>
+                </div>
+                <template x-if="micro.percent > 100">
+                  <div class="mt-4 p-4 bg-red-100 text-red-800 rounded">⚠️ Plafond théorique dépassé</div>
+                </template>
+                <template x-if="micro.percent > 70 && micro.percent <= 100">
+                  <div class="mt-4 p-4 bg-orange-100 text-orange-800 rounded">⚠️ Vous approchez du plafond</div>
+                </template>
+              </div>
+              <div class="text-sm text-gray-600">
+                <p>Ces calculs sont indicatifs. Rapprochez-vous de votre comptable ou de l’URSSAF pour les déclarations officielles.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PARAMÈTRES -->
+        <section x-show="view === 'settings'" x-cloak>
+          <h2 class="text-3xl font-bold mb-6">Paramètres</h2>
+          <div class="bg-white p-6 rounded-lg shadow space-y-6">
+            <div>
+              <label class="block font-medium">Statut entreprise</label>
+              <select x-model="state.settings.type" @change="saveState()" class="mt-1 border rounded px-3 py-2">
+                <option value="micro">Auto-entrepreneur (micro)</option>
+                <option value="reel">Régime réel simplifié</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium">Plafond micro-entreprise (€)</label>
+              <input type="number" x-model.number="state.settings.microCeiling" @change="saveState()" class="mt-1 border rounded px-3 py-2 w-48">
+            </div>
+            <div class="pt-6 border-t">
+              <button @click="resetDemoData()" class="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700">
+                Réinitialiser toutes les données de démo
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SCRIPT GLOBAL -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('app', () => ({
+        view: 'dashboard',
+        quoteTab: 'quotes',
+        state: {
+          projects: [], clients: [], quotes: [], invoices: [], employees: [], projectMaterials: [], settings: {type:'micro', microCeiling: 77700}
+        },
+        selectedProject: null,
+        selectedQuote: null,
+        showNewProjectModal: false,
+        showFacturXModal: false,
+        facturXData: null,
+        newProject: {name:'', clientId:'', address:'', start:'', end:'', responsibleId:''},
+        newTaskText: '',
+        projectSearch: '',
+        projectFilterStatus: '',
+
+        init() {
+          this.loadState()
+          if (!localStorage.getItem('chantierDemoInitialized')) this.initDemoData()
+          this.loadState()
+          this.calculateAll()
+        },
+
+        setActiveView(v) { this.view = v; if(v==='projects') this.selectedProject=null; },
+
+        // ──────── LOCALSTORAGE ────────
+        loadState() {
+          const saved = localStorage.getItem('chantierDemoState')
+          if (saved) this.state = JSON.parse(saved)
+        },
+        saveState() {
+          localStorage.setItem('chantierDemoState', JSON.stringify(this.state))
+          this.calculateAll()
+        },
+
+        // ──────── DONNÉES DE TEST ────────
+        initDemoData() {
+          const year = new Date().getFullYear()
+          const today = new Date()
+          const past = (d) => new Date(today - d*24*60*60*1000).toISOString().slice(0,10)
+          const future = (d) => new Date(today.setDate(today.getDate() + d)).toISOString().slice(0,10)
+
+          this.state = {
+            clients: [
+              {id:1, name:'M. Dupont', email:'dupont@email.com', address:'12 rue des Lilas, 75001 Paris'},
+              {id:2, name:'Mme Martin', email:'martin@email.com', address:'45 av. de la République, 69000 Lyon'},
+              {id:3, name:'SARL BatiPro', email:'contact@batipro.fr', address:'ZA des Artisans, 31000 Toulouse'}
+            ],
+            employees: [
+              {id:1, name:'Jean Michel', role:'Chef de chantier'},
+              {id:2, name:'Lucas', role:'Maçon'},
+              {id:3, name:'Sophie', role:'Électricienne'}
+            ],
+            projects: [
+              {id:1, name:'Rénovation cuisine Dupont', clientId:1, address:'12 rue des Lilas, Paris', start:past(10), end:future(20), status:'En cours', responsibleId:1, tasks:[{text:'Dépose ancienne cuisine', done:true},{text:'Pose nouveau plan de travail', done:false}], quoteIds:[1], invoiceIds:[1]},
+              {id:2, name:'Salle de bain Martin', clientId:2, address:'45 av. République, Lyon', start:past(30), end:past(5), status:'En retard', responsibleId:2, tasks:[{text:'Carrelage mural', done:false}], quoteIds:[2], invoiceIds:[]},
+              {id:3, name:'Extension BatiPro', clientId:3, address:'ZA Toulouse', start:future(10), end:future(60), status:'Prévu', responsibleId:null, tasks:[], quoteIds:[3], invoiceIds:[]},
+              {id:4, name:'Peinture local commercial', clientId:1, address:'Paris', start:past(60), end:past(30), status:'Terminé', responsibleId:3, tasks:[{text:'Peinture murs', done:true},{text:'Peinture plafonds', done:true}], quoteIds:[], invoiceIds:[2]}
+            ],
+            quotes: [
+              {id:1, number:'DEV-2025-001', clientId:1, projectId:1, status:'Accepté', lines:[{desc:'Dépose + évacuation', qty:1, price:850, tva:20},{desc:'Pose cuisine équipée', qty:1, price:5800, tva:20}]},
+              {id:2, number:'DEV-2025-002', clientId:2, projectId:2, status:'Envoyé', lines:[{desc:'Faience + pose', qty:25, price:65, tva:20}]},
+              {id:3, number:'DEV-2025-003', clientId:3, projectId:3, status:'Brouillon', lines:[{desc:'Extension 40m²', qty:1, price:45000, tva:20}]}
+            ],
+            invoices: [
+              {id:1, number:'FAC-2025-001', clientId:1, projectId:1, status:'Envoyée', issueDate:past(15), dueDate:future(15), lines:[{desc:'Acompte cuisine', qty:1, price:3000, tva:20}]},
+              {id:2, number:'FAC-2025-002', clientId:1, projectId:4, status:'Payée', issueDate:past(40), dueDate:past(10), lines:[{desc:'Peinture complète', qty:1, price:2400, tva:20}]}
+            ],
+            settings: {type:'micro', microCeiling:77700}
+          }
+          localStorage.setItem('chantierDemoInitialized', 'true')
+          this.saveState()
+        },
+
+        // ──────── CALCULS KPI ────────
+        calculateAll() {
+          const today = new Date().toISOString().slice(0,10)
+          this.stats = {
+            totalProjects: this.state.projects.length,
+            activeProjects: this.state.projects.filter(p => ['En cours','Prévu'].includes(p.status)).length,
+            lateProjects: this.state.projects.filter(p => p.status==='En retard').length,
+            totalAcceptedQuotes: this.state.quotes.filter(q => q.status==='Accepté').reduce((s,q) => s + this.calculateQuoteTotal(q), 0),
+            pendingQuotes: this.state.quotes.filter(q => q.status==='Envoyé').length,
+            overdueInvoices: this.state.invoices.filter(i => i.status!=='Payée' && i.dueDate < today).reduce((s,i) => s + this.calculateInvoiceTotal(i), 0),
+            pendingInvoices: this.state.invoices.filter(i => i.status==='Envoyée').reduce((s,i) => s + this.calculateInvoiceTotal(i), 0)
+          }
+
+          // Micro-entrepreneur CA
+          const year = new Date().getFullYear()
+          const ca = this.state.invoices
+            .filter(i => i.status==='Payée' || i.status==='Envoyée')
+            .filter(i => new Date(i.issueDate).getFullYear() === year)
+            .reduce((s,i) => s + this.calculateInvoiceTotal(i), 0)
+          this.micro = {
+            ca,
+            percent: (ca / this.state.settings.microCeiling) * 100
+          }
+
+          // Planning semaine courante
+          const start = new Date()
+          start.setDate(start.getDate() - start.getDay() + 1) // lundi
+          this.weekDays = []
+          for(let i=0; i<7; i++) {
+            const d = new Date(start)
+            d.setDate(start.getDate() + i)
+            const iso = d.toISOString().slice(0,10)
+            const name = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][d.getDay()]
+            this.weekDays.push({date: d.toLocaleDateString('fr-FR'), name, iso})
+          }
+        },
+
+        // ──────── UTILITAIRES ────────
+        formatMoney(v) { return new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR'}).format(v||0) },
+        formatDate(d) { return d ? new Date(d).toLocaleDateString('fr-FR') : '' },
+        getClientName(id) { return this.state.clients.find(c=>c.id===id)?.name || '' },
+        getEmployeeName(id) { return this.state.employees.find(e=>e.id===id)?.name || '' },
+        getProjectName(id) { return this.state.projects.find(p=>p.id===id)?.name || '' },
+        calculateQuoteTotal(q) {
+          return q.lines.reduce((s,l) => s + l.qty * l.price * (1 + l.tva/100), 0)
+        },
+        calculateInvoiceTotal(i) {
+          return i.lines.reduce((s,l) => s + l.qty * l.price * (1 + l.tva/100), 0)
+        },
+        isInvoiceOverdue(i) {
+          return i.status !== 'Payée' && i.dueDate < new Date().toISOString().slice(0,10)
+        },
+
+        // ──────── PROJETS ────────
+        get filteredProjects() {
+          return this.state.projects
+            .filter(p => {
+              if(this.projectFilterStatus && p.status !== this.projectFilterStatus) return false
+              if(this.projectSearch && !p.name.toLowerCase().includes(this.projectSearch.toLowerCase()) && !this.getClientName(p.clientId).toLowerCase().includes(this.projectSearch.toLowerCase())) return false
+              return true
+            })
+        },
+        selectProject(id) { this.selectedProject = this.state.projects.find(p=>p.id===id) },
+        addTask() {
+          if(!this.newTaskText.trim()) return
+          this.selectedProject.tasks.push({text:this.newTaskText, done:false})
+          this.newTaskText = ''
+          this.saveState()
+        },
+        createProject() {
+          const id = Math.max(...this.state.projects.map(p=>p.id), 0) + 1
+          this.state.projects.push({
+            id, ...this.newProject, status:'Prévu', tasks:[], quoteIds:[], invoiceIds:[]
+          })
+          this.showNewProjectModal = false
+          this.newProject = {name:'', clientId:'', address:'', start:'', end:'', responsibleId:''}
+          this.saveState()
+        },
+
+        // ──────── DEVIS / FACTURES ────────
+        createQuote() {
+          const id = Math.max(...this.state.quotes.map(q=>q.id), 0) + 1
+          const num = `DEV-${new Date().getFullYear()}-${String(id).padStart(3,'0')}`
+          this.state.quotes.push({id, number:num, clientId:1, projectId:null, status:'Brouillon', lines:[]})
+          this.saveState()
+        },
+        createInvoiceFromQuote(q) {
+          const id = Math.max(...this.state.invoices.map(i=>i.id), 0) + 1
+          const num = `FAC-${new Date().getFullYear()}-${String(id).padStart(3,'0')}`
+          const today = new Date().toISOString().slice(0,10)
+          const due = new Date()
+          due.setDate(due.getDate() + 30)
+          this.state.invoices.push({
+            id, number:num, clientId:q.clientId, projectId:q.projectId,
+            status:'Brouillon', issueDate:today, dueDate:due.toISOString().slice(0,10),
+            lines: [...q.lines]
+          })
+          this.saveState()
+        },
+        markInvoicePaid(inv) {
+          inv.status = 'Payée'
+          this.saveState()
+        },
+        showFacturX(inv) {
+          this.facturXData = {
+            invoice_number: inv.number,
+            issue_date: inv.issueDate,
+            due_date: inv.dueDate,
+            client: this.state.clients.find(c=>c.id===inv.clientId),
+            lines: inv.lines,
+            total_ht: inv.lines.reduce((s,l)=>s + l.qty*l.price,0),
+            total_tva: inv.lines.reduce((s,l)=>s + l.qty*l.price*(l.tva/100),0),
+            total_ttc: this.calculateInvoiceTotal(inv)
+          }
+          this.showFacturXModal = true
+        },
+
+        // ──────── PLANNING ────────
+        projectsOnDay(date) {
+          return this.state.projects.filter(p => p.start <= date && p.end >= date && ['En cours','Prévu'].includes(p.status))
+        },
+
+        // ──────── SIMULATIONS ────────
+        simulateMessage() {
+          const client = this.getClientName(this.selectedProject.clientId)
+          alert(`Simulation d’envoi :\n\nBonjour ${client},\nVotre chantier "${this.selectedProject.name}" commence le ${this.formatDate(this.selectedProject.start)}.\n\nCordialement.`)
+        },
+
+        // ──────── RÉINITIALISATION ────────
+        resetDemoData() {
+          if(confirm('Êtes-vous sûr de vouloir effacer toutes les données et réinitialiser la démo ?')) {
+            localStorage.removeItem('chantierDemoState')
+            localStorage.removeItem('chantierDemoInitialized')
+            location.reload()
+          }
+        }
+      }))
+    })
   </script>
 </body>
 </html>
-
-
-
-
