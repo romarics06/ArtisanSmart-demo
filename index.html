@@ -11,30 +11,30 @@
 <div id="app">
   <!-- Header -->
   <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold">Gestion de chantier - Demo ArtisanSmart</h1>
+    <h1 class="text-xl font-bold">Gestion de chantier - Demo ArtisanSmart V19</h1>
     <div class="space-x-2">
       <button id="test-api" class="bg-green-500 p-2 rounded">Test API Gemini</button>
       <button id="generate-text" class="bg-orange-500 p-2 rounded">Generer texte Landing Page</button>
     </div>
   </header>
   <div class="flex">
-    <!-- Sidebar -->
+    <!-- Sidebar avec onclick inline -->
     <nav id="sidebar" class="w-64 p-4 bg-gray-100 h-screen overflow-y-auto">
       <ul class="space-y-2">
-        <li><button class="w-full text-left p-2 bg-gray-200 rounded sidebar-btn" data-view="dashboard">📊 Tableau de bord</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="projects">🏗️ Chantiers</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="quotes">💰 Devis & Factures</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="planning">📅 Planning</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="employees">👥 Salaries</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="materials">🛠️ Materiaux</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="ae">⚠️ Auto-entrepreneur</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="settings">⚙️ Parametres</button></li>
+        <li><button class="w-full text-left p-2 bg-gray-200 rounded" onclick="setActiveView('dashboard')">📊 Tableau de bord</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('projects')">🏗️ Chantiers</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('quotes')">💰 Devis & Factures</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('planning')">📅 Planning</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('employees')">👥 Salaries</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('materials')">🛠️ Materiaux</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('ae')">⚠️ Auto-entrepreneur</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('settings')">⚙️ Parametres</button></li>
       </ul>
     </nav>
     <!-- Main content -->
     <main id="main-content" class="flex-1 p-4 overflow-y-auto">
-      <h2 class="text-2xl font-bold mb-4">Dashboard - V18 active</h2>
-      <p>Clique sur sidebar pour changer vue. Boutons header fonctionnels.</p>
+      <h2 class="text-2xl font-bold mb-4">Dashboard V19 - Clique sidebar pour tester</h2>
+      <p>Boutons maintenant cliquables. Si pas, F12 console.</p>
     </main>
   </div>
   <!-- Output Gemini -->
@@ -45,141 +45,115 @@
 </div>
 
 <script>
-  console.log("V18 Script charge - Debug actif");
-  
-  // Attendre DOM + delay pour GitHub Pages cache
-  window.addEventListener('load', function() {
-    console.log("Page fully loaded - Attaching events");
+  console.log("V19 Script charge - Inline onclick pour fiabilite");
+
+  // Clé API
+  window.GEMINI_API_KEY = "AIzaSyAV-oQQ9hnAywalaWPznyBpiOKUVprn9tA";
+
+  // Fonction Gemini (fallback sans fetch si cle KO)
+  window.callGemini = async function(prompt, isTest = false) {
+    console.log("Gemini call:", prompt.substring(0, 50) + "...");
+    if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
     
-    // Clé API (ta clé)
-    window.GEMINI_API_KEY = "AIzaSyAV-oQQ9hnAywalaWPznyBpiOKUVprn9tA";
-
-    // Fonction Gemini (inchangée, fallback)
-    window.callGemini = async function(prompt, isTest = false) {
-      console.log("Gemini call:", prompt.substring(0, 50) + "...");
-      if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
+      });
       
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
+      if (!response.ok) throw new Error(`Status ${response.status} - API non active.`);
       
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-          })
-        });
-        
-        if (!response.ok) throw new Error(`Status ${response.status} - API non active.`);
-        
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        console.log("Gemini OK:", text.substring(0, 50) + "...");
-        return isTest ? "API Gemini 1.5 Flash OK - tout fonctionne !" : text;
-        
-      } catch (error) {
-        console.error("Gemini error:", error);
-        return `Erreur: ${error.message} - Verifie activation sur aistudio.google.com/app/apikey`;
-      }
-    };
-
-    // Header boutons (check existence + attach)
-    const testBtn = document.getElementById("test-api");
-    if (testBtn) {
-      testBtn.onclick = async function() {
-        console.log("Test API clicked");
-        const result = await window.callGemini("Dis bonjour en francais.", true);
-        const outputDiv = document.getElementById("gemini-output");
-        outputDiv.classList.remove("hidden");
-        document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
-      };
-      console.log("Test button attached");
+      const data = await response.json();
+      const text = data.candidates[0].content.parts[0].text;
+      console.log("Gemini OK:", text.substring(0, 50) + "...");
+      return isTest ? "API Gemini 1.5 Flash OK - tout fonctionne !" : text;
+      
+    } catch (error) {
+      console.error("Gemini error:", error);
+      return `Erreur: ${error.message} - Verifie activation sur aistudio.google.com/app/apikey`;
     }
+  };
 
-    const genBtn = document.getElementById("generate-text");
-    if (genBtn) {
-      genBtn.onclick = async function() {
-        console.log("Generate clicked");
-        const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
-        const output = await window.callGemini(prompt);
-        const outputDiv = document.getElementById("gemini-output");
-        outputDiv.classList.remove("hidden");
-        document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
-      };
-      console.log("Generate button attached");
+  // Header boutons (onclick inline pour fiabilite)
+  document.getElementById("test-api").onclick = async function() {
+    console.log("Test API clicked");
+    const result = await window.callGemini("Dis bonjour en francais.", true);
+    document.getElementById("gemini-output").classList.remove("hidden");
+    document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
+  };
+
+  document.getElementById("generate-text").onclick = async function() {
+    console.log("Generate clicked");
+    const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
+    const output = await window.callGemini(prompt);
+    document.getElementById("gemini-output").classList.remove("hidden");
+    document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
+  };
+
+  // State hardcode
+  window.state = {
+    projects: [
+      { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
+      { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
+    ]
+  };
+
+  // Fonction setActiveView (appelée par onclick inline)
+  function setActiveView(view) {
+    console.log("Vue changee:", view);
+    const main = document.getElementById('main-content');
+    if (!main) {
+      console.error("Main content not found");
+      return;
     }
-
-    // Sidebar boutons (data-view + onclick inline pour simplicité)
-    const sidebarBtns = document.querySelectorAll('.sidebar-btn');
-    sidebarBtns.forEach(btn => {
-      btn.onclick = function() {
-        const view = this.getAttribute('data-view');
-        console.log("Sidebar clicked:", view);
-        setActiveView(view);
-      };
-    });
-    console.log(`Attached ${sidebarBtns.length} sidebar buttons`);
-
-    // State hardcode (sans localStorage)
-    window.state = {
-      projects: [
-        { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
-        { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
-      ]
-    };
-
-    // Fonctions render (avec KPI enrichis)
-    function setActiveView(view) {
-      console.log("Changing to view:", view);
-      const main = document.getElementById('main-content');
-      if (!main) {
-        console.error("Main content not found");
-        return;
-      }
+    
+    main.innerHTML = '';
+    
+    if (view === 'dashboard') {
+      const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
+      const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
+      const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
       
-      main.innerHTML = '';
-      
-      if (view === 'dashboard') {
-        const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
-        const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
-        const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
-        
-        main.innerHTML = `
-          <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
-          <div class="grid md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
-              <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
-              <p class="text-sm">Grâce aux automatisations</p>
-            </div>
-            <div class="bg-orange-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">CA en attente</h3>
-              <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
-              <p class="text-sm">Devis non signes + factures</p>
-            </div>
-            <div class="bg-red-50 p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">Chantiers a risque</h3>
-              <p class="text-3xl text-red-600">${totalRisques}</p>
-              <p class="text-sm">Retards detectes</p>
-            </div>
+      main.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-blue-50 p-4 rounded-lg text-center">
+            <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
+            <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
+            <p class="text-sm">Grâce aux automatisations</p>
           </div>
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="font-bold">Chantiers en cours</h3>
-            <ul class="list-disc pl-5">
-              ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
-            </ul>
+          <div class="bg-orange-50 p-4 rounded-lg text-center">
+            <h3 class="font-bold text-lg">CA en attente</h3>
+            <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
+            <p class="text-sm">Devis non signes + factures</p>
           </div>
-        `;
-      } else {
-        main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Clique pour naviguer.</p>`;
-      }
+          <div class="bg-red-50 p-4 rounded-lg text-center">
+            <h3 class="font-bold text-lg">Chantiers a risque</h3>
+            <p class="text-3xl text-red-600">${totalRisques}</p>
+            <p class="text-sm">Retards detectes</p>
+          </div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="font-bold">Chantiers en cours</h3>
+          <ul class="list-disc pl-5">
+            ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    } else {
+      main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Navigation OK.</p>`;
     }
+  }
 
-    // Init vue par defaut
-    setActiveView('dashboard');
-    console.log("V18 init complete - Boutons attachees.");
-  });
+  // Init dashboard par defaut (appel direct)
+  setActiveView('dashboard');
+  console.log("V19 init complete - Boutons inline, dashboard charge.");
 </script>
 </body>
 </html>
