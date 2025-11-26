@@ -21,20 +21,20 @@
     <!-- Sidebar -->
     <nav id="sidebar" class="w-64 p-4 bg-gray-100 h-screen overflow-y-auto">
       <ul class="space-y-2">
-        <li><button class="w-full text-left p-2 bg-gray-200 rounded" onclick="setActiveView('dashboard')">📊 Tableau de bord</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('projects')">🏗️ Chantiers</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('quotes')">💰 Devis & Factures</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('planning')">📅 Planning</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('employees')">👥 Salaries</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('materials')">🛠️ Materiaux</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('ae')">⚠️ Auto-entrepreneur</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('settings')">⚙️ Parametres</button></li>
+        <li><button class="w-full text-left p-2 bg-gray-200 rounded sidebar-btn" data-view="dashboard">📊 Tableau de bord</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="projects">🏗️ Chantiers</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="quotes">💰 Devis & Factures</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="planning">📅 Planning</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="employees">👥 Salaries</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="materials">🛠️ Materiaux</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="ae">⚠️ Auto-entrepreneur</button></li>
+        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded sidebar-btn" data-view="settings">⚙️ Parametres</button></li>
       </ul>
     </nav>
-    <!-- Main content (fallback statique) -->
+    <!-- Main content -->
     <main id="main-content" class="flex-1 p-4 overflow-y-auto">
-      <h2 class="text-2xl font-bold mb-4">Dashboard - En chargement...</h2>
-      <p>V17 active - Si vide, ouvre console (F12) pour debug.</p>
+      <h2 class="text-2xl font-bold mb-4">Dashboard - V18 active</h2>
+      <p>Clique sur sidebar pour changer vue. Boutons header fonctionnels.</p>
     </main>
   </div>
   <!-- Output Gemini -->
@@ -45,14 +45,16 @@
 </div>
 
 <script>
-  console.log("Script charge - Version V17");
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM ready - Init complete");
-
-    // Clé API
+  console.log("V18 Script charge - Debug actif");
+  
+  // Attendre DOM + delay pour GitHub Pages cache
+  window.addEventListener('load', function() {
+    console.log("Page fully loaded - Attaching events");
+    
+    // Clé API (ta clé)
     window.GEMINI_API_KEY = "AIzaSyAV-oQQ9hnAywalaWPznyBpiOKUVprn9tA";
 
-    // Fonction Gemini (sans crash, fallback)
+    // Fonction Gemini (inchangée, fallback)
     window.callGemini = async function(prompt, isTest = false) {
       console.log("Gemini call:", prompt.substring(0, 50) + "...");
       if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
@@ -82,84 +84,101 @@
       }
     };
 
-    // Boutons avec check
+    // Header boutons (check existence + attach)
     const testBtn = document.getElementById("test-api");
     if (testBtn) {
-      testBtn.addEventListener("click", async () => {
-        console.log("Test click");
+      testBtn.onclick = async function() {
+        console.log("Test API clicked");
         const result = await window.callGemini("Dis bonjour en francais.", true);
-        document.getElementById("gemini-output").classList.remove("hidden");
+        const outputDiv = document.getElementById("gemini-output");
+        outputDiv.classList.remove("hidden");
         document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
-      });
+      };
+      console.log("Test button attached");
     }
 
     const genBtn = document.getElementById("generate-text");
     if (genBtn) {
-      genBtn.addEventListener("click", async () => {
-        console.log("Generate click");
+      genBtn.onclick = async function() {
+        console.log("Generate clicked");
         const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
         const output = await window.callGemini(prompt);
-        document.getElementById("gemini-output").classList.remove("hidden");
+        const outputDiv = document.getElementById("gemini-output");
+        outputDiv.classList.remove("hidden");
         document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
-      });
+      };
+      console.log("Generate button attached");
     }
 
-    // State hardcode (sans localStorage pour eviter bug)
+    // Sidebar boutons (data-view + onclick inline pour simplicité)
+    const sidebarBtns = document.querySelectorAll('.sidebar-btn');
+    sidebarBtns.forEach(btn => {
+      btn.onclick = function() {
+        const view = this.getAttribute('data-view');
+        console.log("Sidebar clicked:", view);
+        setActiveView(view);
+      };
+    });
+    console.log(`Attached ${sidebarBtns.length} sidebar buttons`);
+
+    // State hardcode (sans localStorage)
     window.state = {
       projects: [
-        { id: 1, name: "Maison Dupont", status: "En cours", caAttente: 2500 },
-        { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 10 },
-        { id: 3, name: "Bureau Leroy", status: "Prevu", risques: 1 }
+        { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
+        { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
       ]
     };
 
-    // Fonctions render
+    // Fonctions render (avec KPI enrichis)
     function setActiveView(view) {
-      console.log("Vue changee:", view);
+      console.log("Changing to view:", view);
       const main = document.getElementById('main-content');
-      if (!main) return console.error("Main non trouve");
+      if (!main) {
+        console.error("Main content not found");
+        return;
+      }
       
       main.innerHTML = '';
       
       if (view === 'dashboard') {
-        const tempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
-        const caAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
-        const risques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
+        const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
+        const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
+        const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
         
         main.innerHTML = `
           <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
           <div class="grid md:grid-cols-3 gap-4 mb-6">
             <div class="bg-blue-50 p-4 rounded-lg text-center">
               <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
-              <p class="text-3xl text-green-600">${tempsGagne}h</p>
+              <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
               <p class="text-sm">Grâce aux automatisations</p>
             </div>
             <div class="bg-orange-50 p-4 rounded-lg text-center">
               <h3 class="font-bold text-lg">CA en attente</h3>
-              <p class="text-3xl text-orange-600">${caAttente}€</p>
+              <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
               <p class="text-sm">Devis non signes + factures</p>
             </div>
             <div class="bg-red-50 p-4 rounded-lg text-center">
               <h3 class="font-bold text-lg">Chantiers a risque</h3>
-              <p class="text-3xl text-red-600">${risques}</p>
+              <p class="text-3xl text-red-600">${totalRisques}</p>
               <p class="text-sm">Retards detectes</p>
             </div>
           </div>
           <div class="bg-gray-50 p-4 rounded-lg">
             <h3 class="font-bold">Chantiers en cours</h3>
-            <ul>
+            <ul class="list-disc pl-5">
               ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
             </ul>
           </div>
         `;
       } else {
-        main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee. Clique pour naviguer.</p>`;
+        main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Clique pour naviguer.</p>`;
       }
     }
 
     // Init vue par defaut
     setActiveView('dashboard');
-    console.log("V17 init OK - Dashboard affiche.");
+    console.log("V18 init complete - Boutons attachees.");
   });
 </script>
 </body>
