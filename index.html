@@ -3,158 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion de chantier - Demo ArtisanSmart</title>
+  <title>Gestion de chantier - Demo ArtisanSmart V20</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>body { font-family: system-ui, sans-serif; }</style>
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    #app { display: flex; flex-direction: column; min-height: 100vh; }
+    .flex { display: flex; }
+    .h-screen { height: 100vh; }
+    .overflow-y-auto { overflow-y: auto; }
+    .space-y-2 > * + * { margin-top: 0.5rem; }
+    .grid { display: grid; }
+    .md\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    @media (min-width: 768px) { .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .gap-4 { gap: 1rem; }
+    .bg-blue-50 { background-color: rgb(239 246 255); }
+    .p-4 { padding: 1rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .text-center { text-align: center; }
+    .font-bold { font-weight: 700; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .text-green-600 { color: rgb(22 163 74); }
+    .text-orange-600 { color: rgb(234 88 12); }
+    .text-red-600 { color: rgb(220 38 38); }
+    .bg-orange-50 { background-color: rgb(254 252 232); }
+    .bg-red-50 { background-color: rgb(254 242 242); }
+    .bg-gray-50 { background-color: rgb(249 250 251); }
+  </style>
 </head>
-<body class="bg-white text-gray-800">
-<div id="app">
-  <!-- Header -->
-  <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold">Gestion de chantier - Demo ArtisanSmart V19</h1>
-    <div class="space-x-2">
-      <button id="test-api" class="bg-green-500 p-2 rounded">Test API Gemini</button>
-      <button id="generate-text" class="bg-orange-500 p-2 rounded">Generer texte Landing Page</button>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">Gestion de chantier - Demo ArtisanSmart V20</h1>
+      <div class="space-x-2">
+        <button id="test-api" class="bg-green-500 p-2 rounded">Test API Gemini</button>
+        <button id="generate-text" class="bg-orange-500 p-2 rounded">Generer texte Landing Page</button>
+      </div>
+    </header>
+    <div class="flex">
+      <!-- Sidebar -->
+      <nav class="w-64 p-4 bg-gray-100 h-screen overflow-y-auto">
+        <ul class="space-y-2">
+          <li><button class="w-full text-left p-2 bg-gray-200 rounded" onclick="setActiveView('dashboard')">📊 Tableau de bord</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('projects')">🏗️ Chantiers</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('quotes')">💰 Devis & Factures</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('planning')">📅 Planning</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('employees')">👥 Salaries</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('materials')">🛠️ Materiaux</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('ae')">⚠️ Auto-entrepreneur</button></li>
+          <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('settings')">⚙️ Parametres</button></li>
+        </ul>
+      </nav>
+      <!-- Main content -->
+      <main id="main-content" class="flex-1 p-4 overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-4">Dashboard V20 - Clique sidebar pour tester</h2>
+        <p>Boutons maintenant cliquables. Si pas, F12 console.</p>
+      </main>
     </div>
-  </header>
-  <div class="flex">
-    <!-- Sidebar avec onclick inline -->
-    <nav id="sidebar" class="w-64 p-4 bg-gray-100 h-screen overflow-y-auto">
-      <ul class="space-y-2">
-        <li><button class="w-full text-left p-2 bg-gray-200 rounded" onclick="setActiveView('dashboard')">📊 Tableau de bord</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('projects')">🏗️ Chantiers</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('quotes')">💰 Devis & Factures</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('planning')">📅 Planning</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('employees')">👥 Salaries</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('materials')">🛠️ Materiaux</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('ae')">⚠️ Auto-entrepreneur</button></li>
-        <li><button class="w-full text-left p-2 hover:bg-gray-200 rounded" onclick="setActiveView('settings')">⚙️ Parametres</button></li>
-      </ul>
-    </nav>
-    <!-- Main content -->
-    <main id="main-content" class="flex-1 p-4 overflow-y-auto">
-      <h2 class="text-2xl font-bold mb-4">Dashboard V19 - Clique sidebar pour tester</h2>
-      <p>Boutons maintenant cliquables. Si pas, F12 console.</p>
-    </main>
+    <!-- Output Gemini -->
+    <div id="gemini-output" class="p-4 border-t bg-gray-50 hidden">
+      <h3 class="font-bold mb-2">Texte genere par Gemini :</h3>
+      <div id="output-content"></div>
+    </div>
   </div>
-  <!-- Output Gemini -->
-  <div id="gemini-output" class="p-4 border-t bg-gray-50 hidden">
-    <h3 class="font-bold mb-2">Texte genere par Gemini :</h3>
-    <div id="output-content"></div>
-  </div>
-</div>
 
-<script>
-  console.log("V19 Script charge - Inline onclick pour fiabilite");
-
-  // Clé API
-  window.GEMINI_API_KEY = "AIzaSyDPwVumJ-B-ucYtIT1eOyP9UBoawOOH2yg";
-
-  // Fonction Gemini (fallback sans fetch si cle KO)
-  window.callGemini = async function(prompt, isTest = false) {
-    console.log("Gemini call:", prompt.substring(0, 50) + "...");
-    if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
+  <script>
+    console.log("V20 Script charge - Structure full");
     
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
-    
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-        })
-      });
-      
-      if (!response.ok) throw new Error(`Status ${response.status} - API non active.`);
-      
-      const data = await response.json();
-      const text = data.candidates[0].content.parts[0].text;
-      console.log("Gemini OK:", text.substring(0, 50) + "...");
-      return isTest ? "API Gemini 1.5 Flash OK - tout fonctionne !" : text;
-      
-    } catch (error) {
-      console.error("Gemini error:", error);
-      return `Erreur: ${error.message} - Verifie activation sur aistudio.google.com/app/apikey`;
-    }
-  };
+    // Clé API
+    window.GEMINI_API_KEY = "AIzaSyDPwVumJ-B-ucYtIT1eOyP9UBoawOOH2yg";
 
-  // Header boutons (onclick inline pour fiabilite)
-  document.getElementById("test-api").onclick = async function() {
-    console.log("Test API clicked");
-    const result = await window.callGemini("Dis bonjour en francais.", true);
-    document.getElementById("gemini-output").classList.remove("hidden");
-    document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
-  };
-
-  document.getElementById("generate-text").onclick = async function() {
-    console.log("Generate clicked");
-    const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
-    const output = await window.callGemini(prompt);
-    document.getElementById("gemini-output").classList.remove("hidden");
-    document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
-  };
-
-  // State hardcode
-  window.state = {
-    projects: [
-      { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
-      { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
-    ]
-  };
-
-  // Fonction setActiveView (appelée par onclick inline)
-  function setActiveView(view) {
-    console.log("Vue changee:", view);
-    const main = document.getElementById('main-content');
-    if (!main) {
-      console.error("Main content not found");
-      return;
-    }
-    
-    main.innerHTML = '';
-    
-    if (view === 'dashboard') {
-      const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
-      const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
-      const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
+    // Fonction Gemini
+    window.callGemini = async function(prompt, isTest = false) {
+      console.log("Gemini call:", prompt.substring(0, 50) + "...");
+      if (!window.GEMINI_API_KEY) return "Cle API non active - Mode demo.";
       
-      main.innerHTML = `
-        <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
-        <div class="grid md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-blue-50 p-4 rounded-lg text-center">
-            <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
-            <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
-            <p class="text-sm">Grâce aux automatisations</p>
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
+      
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+          })
+        });
+        
+        if (!response.ok) throw new Error(`Status ${response.status} - API non active.`);
+        
+        const data = await response.json();
+        const text = data.candidates[0].content.parts[0].text;
+        console.log("Gemini OK:", text.substring(0, 50) + "...");
+        return isTest ? "API Gemini 1.5 Flash OK - tout fonctionne !" : text;
+        
+      } catch (error) {
+        console.error("Gemini error:", error);
+        return `Erreur: ${error.message} - Verifie activation sur aistudio.google.com/app/apikey`;
+      }
+    };
+
+    // Header boutons (onclick direct)
+    document.getElementById("test-api").onclick = async function() {
+      console.log("Test API clicked");
+      const result = await window.callGemini("Dis bonjour en francais.", true);
+      document.getElementById("gemini-output").classList.remove("hidden");
+      document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
+    };
+
+    document.getElementById("generate-text").onclick = async function() {
+      console.log("Generate clicked");
+      const prompt = "Generer un texte LP pour ArtisanSmart SaaS artisans batiment. Hero + features KPI + pricing + CTA. Ton simple pro.";
+      const output = await window.callGemini(prompt);
+      document.getElementById("gemini-output").classList.remove("hidden");
+      document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
+    };
+
+    // State
+    window.state = {
+      projects: [
+        { id: 1, name: "Maison Dupont", status: "En cours", tempsGagne: 5, caAttente: 1500, risques: 0 },
+        { id: 2, name: "Appartement Martin", status: "Termine", tempsGagne: 5, caAttente: 1000, risques: 1 }
+      ]
+    };
+
+    // setActiveView (appelée par onclick)
+    function setActiveView(view) {
+      console.log("Vue changee:", view);
+      const main = document.getElementById('main-content');
+      main.innerHTML = '';
+      
+      if (view === 'dashboard') {
+        const totalTempsGagne = window.state.projects.reduce((sum, p) => sum + (p.tempsGagne || 0), 0);
+        const totalCaAttente = window.state.projects.reduce((sum, p) => sum + (p.caAttente || 0), 0);
+        const totalRisques = window.state.projects.reduce((sum, p) => sum + (p.risques || 0), 0);
+        
+        main.innerHTML = `
+          <h2 class="text-2xl font-bold mb-6">Tableau de bord - KPI valeur</h2>
+          <div class="grid md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">Temps gagne ce mois</h3>
+              <p class="text-3xl text-green-600">${totalTempsGagne}h</p>
+              <p class="text-sm">Grâce aux automatisations</p>
+            </div>
+            <div class="bg-orange-50 p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">CA en attente</h3>
+              <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
+              <p class="text-sm">Devis non signes + factures</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">Chantiers a risque</h3>
+              <p class="text-3xl text-red-600">${totalRisques}</p>
+              <p class="text-sm">Retards detectes</p>
+            </div>
           </div>
-          <div class="bg-orange-50 p-4 rounded-lg text-center">
-            <h3 class="font-bold text-lg">CA en attente</h3>
-            <p class="text-3xl text-orange-600">${totalCaAttente}€</p>
-            <p class="text-sm">Devis non signes + factures</p>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold">Chantiers en cours</h3>
+            <ul class="list-disc pl-5">
+              ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
+            </ul>
           </div>
-          <div class="bg-red-50 p-4 rounded-lg text-center">
-            <h3 class="font-bold text-lg">Chantiers a risque</h3>
-            <p class="text-3xl text-red-600">${totalRisques}</p>
-            <p class="text-sm">Retards detectes</p>
-          </div>
-        </div>
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="font-bold">Chantiers en cours</h3>
-          <ul class="list-disc pl-5">
-            ${window.state.projects.map(p => `<li>${p.name} - ${p.status}</li>`).join('')}
-          </ul>
-        </div>
-      `;
-    } else {
-      main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Navigation OK.</p>`;
+        `;
+      } else {
+        main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Vue ${view}</h2><p>Demo activee - Navigation OK.</p>`;
+      }
     }
-  }
 
-  // Init dashboard par defaut (appel direct)
-  setActiveView('dashboard');
-  console.log("V19 init complete - Boutons inline, dashboard charge.");
-</script>
+    // Init
+    setActiveView('dashboard');
+    console.log("V20 init complete - Tout charge.");
+  </script>
 </body>
 </html>
-
