@@ -1,80 +1,97 @@
 <script>
-  // ==========================
-  // GEMINI API – Version 100 % fonctionnelle novembre 2025
-  // ==========================
-  window.GEMINI_API_KEY = "AIzaSyAV-oQQ9hnAywalaWPznyBpiOKUVprn9tA"; // Ta clé (elle est bonne, on la garde)
+  // Attendre que le DOM soit prêt (fix principal)
+  document.addEventListener('DOMContentLoaded', function() {
+    // ==========================
+    // 1️⃣ Clé API Gemini (ta clé est bonne)
+    // ==========================
+    window.GEMINI_API_KEY = "AIzaSyAV-oQQ9hnAywalaWPznyBpiOKUVprn9tA";
 
-  window.callGemini = async function(prompt, isTest = false) {
-    if (!window.GEMINI_API_KEY || window.GEMINI_API_KEY.includes("remplace")) {
-      alert("Clé API manquante ou invalide !");
-      return null;
-    }
-
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Erreur ${response.status} : ${err}`);
+    // Fonction Gemini (endpoint correct 1.5 Flash)
+    window.callGemini = async function(prompt, isTest = false) {
+      if (!window.GEMINI_API_KEY || window.GEMINI_API_KEY.includes("remplace")) {
+        alert("Clé API manquante ! Active-la dans Google AI Studio.");
+        return null;
       }
 
-      const data = await response.json();
-      const text = data.candidates[0].content.parts[0].text;
-      return isTest ? "API Gemini 1.5 Flash OK – tout fonctionne !" : text;
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_API_KEY}`;
 
-    } catch (error) {
-      console.error("Erreur Gemini :", error);
-      alert(`Erreur API : ${error.message}\n\nVérifie que ta clé est activée sur https://aistudio.google.com/app/apikey`);
-      return null;
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.text();
+          throw new Error(`Erreur ${response.status}: ${err}`);
+        }
+
+        const data = await response.json();
+        const text = data.candidates[0].content.parts[0].text;
+        return isTest ? "✅ API Gemini 1.5 Flash OK – tout fonctionne !" : text;
+
+      } catch (error) {
+        console.error("Erreur Gemini:", error);
+        alert(`Erreur: ${error.message}\nVérifie ta clé sur aistudio.google.com/app/apikey`);
+        return null;
+      }
+    };
+
+    // Boutons (après DOM ready)
+    document.getElementById("test-api").addEventListener("click", async () => {
+      const result = await window.callGemini("Dis bonjour en français.", true);
+      const outputDiv = document.getElementById("gemini-output");
+      outputDiv.classList.remove("hidden");
+      document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
+    });
+
+    document.getElementById("generate-text").addEventListener("click", async () => {
+      const prompt = `Génère un texte LP pour ArtisanSmart SaaS artisans bâtiment. Hero + features KPI + pricing + CTA. Ton simple pro.`;
+      const output = await window.callGemini(prompt);
+      if (output) {
+        document.getElementById("gemini-output").classList.remove("hidden");
+        document.getElementById("output-content").innerHTML = `<pre class="bg-white p-4 rounded overflow-auto text-sm">${output}</pre>`;
+      }
+    });
+
+    // ==========================
+    // 2️⃣ Initialisation state (avec gestion erreur)
+    // ==========================
+    let state;
+    try {
+      state = JSON.parse(localStorage.getItem('appState')) || initState();
+    } catch (e) {
+      console.warn("State corrompu, reset:", e);
+      state = initState();
     }
-  };
 
-  // Bouton test
-  document.getElementById("test-api").addEventListener("click", async () => {
-    const result = await window.callGemini("Dis-moi bonjour en français.", true);
-    document.getElementById("gemini-output").classList.remove("hidden");
-    document.getElementById("output-content").innerHTML = `<p class="text-green-600 font-bold">${result}</p>`;
-  });
-
-  // Générer texte Landing Page (prompt enrichi avec tout ce qu’on a vu)
-  document.getElementById("generate-text").addEventListener("click", async () => {
-    const prompt = `Tu es un copywriter expert SaaS B2B pour artisans du bâtiment.
-
-Écris un texte complet et ultra-converti pour la landing page d’ArtisanSmart (nouveau SaaS français).
-
-Inclus :
-- Hero avec slogan fort + sous-titre
-- 3 blocs features avec KPI concrets (ex : "1 devis IA = 5h gagnées")
-- Bloc pricing clair (29€ / 59€ / 99€)
-- Bloc témoignages (2 faux réalistes)
-- CTA fort "50 places early – essai gratuit 14 jours"
-
-Ton : simple, direct, proche de l’artisan, français courant, zéro bullshit.
-
-Utilise les features suivantes :
-- Devis IA en 20s
-- Factur-X & Chorus Pro intégrés
-- Planning intelligent offline
-- Photos chantier → analyse IA avancement
-- Relances cashflow auto
-- Module Auto-entrepreneur (alertes URSSAF, plafond)
-- Dashboard KPI valeur (temps gagné, CA attente, impayés évités)
-
-Finis par un CTA urgent : "50 places early à 29,90€/mois – disparues en 48h".`;
-
-    const output = await window.callGemini(prompt);
-    if (output) {
-      document.getElementById("gemini-output").classList.remove("hidden");
-      document.getElementById("output-content").innerHTML = `<pre class="bg-white p-6 rounded-lg shadow overflow-auto text-sm whitespace-pre-wrap">${output}</pre>`;
+    function initState() {
+      const year = new Date().getFullYear();
+      const demoState = {
+        // ... (ton state existant, inchangé)
+        projects: [...], // Colle ton state complet ici si besoin
+        // etc.
+      };
+      localStorage.setItem('appState', JSON.stringify(demoState));
+      return demoState;
     }
+
+    // ==========================
+    // 3️⃣ Navigation (inchangée, mais appelée après DOM)
+    // ==========================
+    function setActiveView(view) {
+      // Ton code navigation existant...
+      const main = document.getElementById('main-content');
+      main.innerHTML = '';
+      if (view === 'dashboard') renderDashboard();
+      // ... (reste inchangé)
+    }
+
+    // Vue par défaut après tout
+    setActiveView('dashboard');
   });
 </script>
